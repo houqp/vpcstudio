@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" type="text/css" href="src/style.scss">
+    <title>VPC Studio</title>
+</head>
+<body>
+
+  <nav class="navbar" role="navigation" aria-label="main navigation">
+    <div class="navbar-brand">
+      <a class="navbar-item">
+      </a>
+
+      <a role="button" class="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="navbar-menu-items">
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+      </a>
+    </div>
+
+    <div id="navbar-menu-items" class="navbar-menu">
+      <div class="navbar-start">
+      </div>
+
+      <div class="navbar-end">
+        <div class=navbar-item>
+          <div class="buttons">
+            <a class="button" href=https://github.com/houqp/vpcstudio>
+              <span>Code</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero section">
+    <div class="hero-body">
+      <div class="container">
+        <h1 class="title">
+          VPC Studio
+        </h1>
+        <h2 class="subtitle">
+        Provide a CIDR range, express your desired design, sit back and enjoy a cup of ☕
+        </h2>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div id="config">
+      </div>
+    </div>
+
+    <div id="plan-container" class="container has-text-centered">
+      <button id="plan" class="button is-link">
+        Plan ⬇️
+      </button>
+    </div>
+
+    <div id="vis" class="container">
+      <div class="container">
+        <div class="tabs is-centered">
+          <ul>
+            <li id="diagram-tab" class="is-active"><a>Diagram view</a></li>
+            <li id="tree-tab"><a>Tree view</a></li>
+          </ul>
+        </div>
+
+        <div id="diagram-container" class="box">
+          <div id="diagram">
+          </div>
+        </div>
+
+        <div id="tree-container" class="box">
+          <div id="tree">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="footer" class="section">
+    <div class="content has-text-centered">
+      <p>Built by <a href="https://github.com/houqp">houqp</a> without your favorite JS framework</p>
+    </div>
+  </section>
+</body>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Get all "navbar-burger" elements
+    const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
+
+    // Check if there are any navbar burgers
+    if ($navbarBurgers.length > 0) {
+
+      // Add a click event on each of them
+      $navbarBurgers.forEach( el => {
+        el.addEventListener('click', () => {
+
+          // Get the target from the "data-target" attribute
+          const target = el.dataset.target;
+          const $target = document.getElementById(target);
+
+          // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
+          el.classList.toggle('is-active');
+          $target.classList.toggle('is-active');
+
+        });
+      });
+    }
+  });
+</script>
+
+<script src="node_modules/ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+<script src="node_modules/ace-builds/src-noconflict/mode-yaml.js" type="text/javascript" charset="utf-8"></script>
+<script src="node_modules/ace-builds/src-noconflict/theme-tomorrow.js" type="text/javascript" charset="utf-8"></script>
+<script src="src/main.ts"></script>
+
+</html>

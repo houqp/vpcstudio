@@ -1,0 +1,32 @@
+{
+  "name": "vpcstudio",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "dependencies": {
+    "ace-builds": "^1.4.8",
+    "build": "^0.1.4",
+    "bulma": "^0.8.0",
+    "cytoscape": "^3.13.0",
+    "cytoscape-no-overlap": "^1.0.1",
+    "cytoscape-popper": "^1.0.6",
+    "file-loader": "^5.0.2",
+    "js-yaml": "^3.13.1",
+    "node-cidr": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/ace": "0.0.42",
+    "@types/cytoscape": "^3.8.8",
+    "@types/js-yaml": "^3.12.1",
+    "@types/node": "^13.1.8",
+    "parcel": "^2.0.0-alpha.3.2",
+    "parcel-bundler": "^1.12.4",
+    "sass": "^1.25.0",
+    "typescript": "^3.7.5"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "QP",
+  "license": "MIT"
+}

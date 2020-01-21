@@ -1,0 +1,84 @@
+@charset "utf-8";
+
+$color-bg: #f6f9fb;
+$color-border: rgba(207, 215, 223, 0.55);
+$color-hi: #6060b3;
+$color-secondary: #503e5d;
+$color-tertiary: #87BBFD;
+$color-text: #525f7f;
+$color-headline: #503e5d;
+
+// background, navbar-background
+$scheme-main: $color-bg;
+// navbar-divider-background-color
+$background: $color-border;
+$link: $color-hi;
+$link-focus: $color-headline;
+$link-active: $color-headline;
+$link-hover: $color-secondary;
+$text: $color-text;
+$text-strong: $color-headline;
+$border: $color-border;
+
+@import "../node_modules/bulma/sass/utilities/_all.sass";
+@import "../node_modules/bulma/sass/base/_all.sass";
+@import "../node_modules/bulma/sass/form/_all.sass";
+@import "../node_modules/bulma/sass/layout/section.sass";
+@import "../node_modules/bulma/sass/components/navbar.sass";
+@import "../node_modules/bulma/sass/components/tabs.sass";
+@import "../node_modules/bulma/sass/elements/title.sass";
+@import "../node_modules/bulma/sass/elements/box.sass";
+@import "../node_modules/bulma/sass/elements/container.sass";
+@import "../node_modules/bulma/sass/elements/button.sass";
+@import "../node_modules/bulma/sass/elements/content.sass";
+
+#config {
+  height: 280px;
+}
+
+#diagram {
+  width: 100%;
+  height: 800px;
+  display: block;
+}
+
+#diagram-popper {
+  min-width: 440px;
+}
+
+#vis {
+    .box {
+        background-color: #FFFFFF;
+    }
+}
+
+#tree {
+    ul {
+        margin-left: 30px;
+    }
+}
+
+.toggle {
+    cursor: pointer;
+}
+
+.toggle::before {
+    content: "\25B6";
+    color: $color-hi;
+    display: inline-block;
+    transform: rotate(90deg);
+    margin-right: 5px;
+}
+
+.hide-toggle::before {
+    transform: rotate(0deg);
+}
+
+.collapsed {
+    display: none;
+}
+
+#plan-container {
+    margin-top: 1em;
+    margin-bottom: 2em;
+}
