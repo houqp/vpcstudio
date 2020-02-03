@@ -6,6 +6,8 @@ import {
 } from "./planner";
 import drawTree from "./tree_view";
 import drawDiagram from "./diagram_view";
+import drawJSON from "./json_view";
+import drawTerraform from "./terraform_view";
 
 interface PlanConfig {
     cidr: string;
@@ -31,26 +33,34 @@ function plan(cfgStr: string) {
 
     const cidr = cfg["cidr"]
     const cluster = new Cluster(cidr, cfg.regions, cfg.subnet_routes)
+
     drawDiagram(cluster, planClearCallbacks);
     drawTree(cluster);
+    drawJSON(cluster);
+    drawTerraform(cluster);
 }
 
 function setTabActive(target_tab: HTMLElement) {
+    resetPlanInteractions();
+
     const vis_section = <HTMLElement>document.getElementById("vis");
-    const active_tab = <HTMLElement>vis_section.querySelector(".is-active");
-    if (active_tab !== target_tab) {
+    const active_tab = vis_section.querySelector(".is-active");
+    if (active_tab != null && active_tab !== target_tab) {
         active_tab.classList.remove("is-active");
     }
     target_tab.classList.add("is-active");
-}
 
-function hideVisBox(box_id: string) {
-    const box = <HTMLElement>document.getElementById(box_id);
-    box.style.display = "none";
-}
+    // hide container for all visualization
+    const vis_container = <HTMLElement>document.getElementById("vis");
+    const vis_boxes = vis_container.querySelectorAll(".container .box");
+    for (let i = 0; i < vis_boxes.length; i ++) {
+        const box = <HTMLElement>vis_boxes[i];
+        box.style.display = "none";
+    }
 
-function showVisBox(box_id: string) {
-    const box = <HTMLElement>document.getElementById(box_id);
+    // show container for selected visualization
+    const vis_box_id = <string>target_tab.dataset.target;
+    const box = <HTMLElement>document.getElementById(vis_box_id);
     box.style.display = "block";
 }
 
@@ -75,33 +85,28 @@ regions:
 subnet_routes:
     public:
         size: s
-    company_internal:
+    private_company:
         size: m
-    team_internal:
+    private_team:
         size: l
 `
     editor.getSession().setValue(sampleConfig);
 
     const diagram_tab = <HTMLElement>document.getElementById("diagram-tab");
     const showDiagram = function(){
-        resetPlanInteractions();
         setTabActive(diagram_tab);
-        hideVisBox("tree-container");
-        showVisBox("diagram-container");
     };
     diagram_tab.addEventListener("click", showDiagram);
 
     const tree_tab = <HTMLElement>document.getElementById("tree-tab");
-    const showTree = function(){
-        resetPlanInteractions();
-        setTabActive(tree_tab);
-        hideVisBox("diagram-container");
-        showVisBox("tree-container");
-    };
+    const showTree = function(){ setTabActive(tree_tab) };
     tree_tab.addEventListener("click", showTree);
 
-    // default to show diagram visualization
-    showDiagram();
+    const terraform_tab = <HTMLElement>document.getElementById("terraform-tab");
+    terraform_tab.addEventListener("click", function(){ setTabActive(terraform_tab) });
+
+    const json_tab = <HTMLElement>document.getElementById("json-tab");
+    json_tab.addEventListener("click", function(){ setTabActive(json_tab) });
 
     const planFromEditorValue = function() {
         plan(editor.getSession().getValue());
@@ -110,6 +115,9 @@ subnet_routes:
     const planBtn = <HTMLButtonElement>document.getElementById("plan");
     planBtn.addEventListener("click", Event => planFromEditorValue());
     planFromEditorValue();
+
+    // default to show diagram visualization
+    showDiagram();
 }
 
 window.onload = main;

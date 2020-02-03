@@ -32,6 +32,8 @@ $border: $color-border;
 @import "../node_modules/bulma/sass/elements/button.sass";
 @import "../node_modules/bulma/sass/elements/content.sass";
 
+$color-vis-bg: #FFF;
+
 #config {
   height: 280px;
 }
@@ -48,7 +50,7 @@ $border: $color-border;
 
 #vis {
     .box {
-        background-color: #FFFFFF;
+        background-color: $color-vis-bg;
     }
 }
 
@@ -56,6 +58,10 @@ $border: $color-border;
     ul {
         margin-left: 30px;
     }
+}
+
+pre {
+    background-color: $color-vis-bg;
 }
 
 .toggle {

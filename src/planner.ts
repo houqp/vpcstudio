@@ -41,6 +41,11 @@ class FreeCidr extends CidrBlock {
     constructor(cidr: string) {
         super(cidr);
     }
+    toJSON(): Object {
+        return {
+            cidr: this.cidr,
+        };
+    }
 }
 
 const intCommonCidr = (ips: number[]): string => {
@@ -102,13 +107,21 @@ const cidrSubtract = (xcidr: string, ycidr: string): string | null => {
 };
 
 export class Subnet extends CidrBlock {
-    name: string | null;
+    name: string;
 
     constructor(
-        cidr: string, name: string | null = null,
+        cidr: string, name: string,
     ) {
         super(cidr);
         this.name = name;
+    }
+
+    toJSON(): Object {
+        let subnet = {
+            name: this.name,
+            cidr: this.cidr,
+        };
+        return subnet
     }
 }
 
@@ -179,6 +192,22 @@ export class Zone extends CidrBlock {
         this.subnets = re.subnets;
         this.freeCidrs = re.freeCidrs;
     }
+
+    toJSON(): Object {
+        let zone = {
+            name: this.name,
+            cidr: this.cidr,
+            subnets: [] as Array<Object>,
+            reserved_cidrs: [] as Array<Object>,
+        };
+        for (const subnet of this.subnets) {
+            zone.subnets.push(subnet.toJSON());
+        }
+        for (const freecidr of this.freeCidrs) {
+            zone.reserved_cidrs.push(freecidr.toJSON());
+        }
+        return zone
+    }
 }
 
 interface VPCPlanResult {
@@ -241,6 +270,22 @@ export class VPC extends CidrBlock {
         const re = planVPC(cidr, zone_count, subnet_routes);
         this.zones = re.zones;
         this.freeCidrs = re.freeCidrs;
+    }
+
+    toJSON(): any {
+        let vpc = {
+            name: this.name,
+            cidr: this.cidr,
+            zones: [] as Array<Object>,
+            reserved_cidrs: [] as Array<Object>,
+        };
+        for (const zone of this.zones) {
+            vpc.zones.push(zone.toJSON());
+        }
+        for (const freecidr of this.freeCidrs) {
+            vpc.reserved_cidrs.push(freecidr.toJSON());
+        }
+        return vpc;
     }
 }
 

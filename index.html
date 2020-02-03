@@ -74,8 +74,10 @@
       <div class="container">
         <div class="tabs is-centered">
           <ul>
-            <li id="diagram-tab" class="is-active"><a>Diagram view</a></li>
-            <li id="tree-tab"><a>Tree view</a></li>
+            <li id="diagram-tab" data-target="diagram-container"><a>Diagram view</a></li>
+            <li id="tree-tab" data-target="tree-container"><a>Tree view</a></li>
+            <li id="terraform-tab" data-target="terraform-container"><a>Terraform</a></li>
+            <li id="json-tab" data-target="json-container"><a>JSON</a></li>
           </ul>
         </div>
 
@@ -88,6 +90,17 @@
           <div id="tree">
           </div>
         </div>
+
+        <div id="terraform-container" class="box">
+          <div id="terraform">
+          </div>
+        </div>
+
+        <div id="json-container" class="box">
+          <div id="json">
+          </div>
+        </div>
+
       </div>
     </div>
   </section>
