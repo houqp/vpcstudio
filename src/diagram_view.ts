@@ -27,7 +27,7 @@ function drawDiagram(cluster: Cluster, clearCallbacks: Array<() => void>) {
             data: {
                 id: vpc_id,
                 label: `${vpc.name} @ ${vpc.region} (${vpc.cidr})`,
-                desc: `${vpc.name} VPC in region ${vpc.region}`,
+                desc: `VPC <b>${vpc.name}</b> in region <b>${vpc.region}</b>`,
                 kind: "vpc",
                 obj: vpc,
             },
@@ -39,7 +39,7 @@ function drawDiagram(cluster: Cluster, clearCallbacks: Array<() => void>) {
                 data: {
                     id: zone_id,
                     label: `${zone.name} (${zone.cidr})`,
-                    desc: `Zone ${zone.zone}`,
+                    desc: `Zone <b>${zone.zone}</b>`,
                     parent: vpc_id,
                     kind: "zone",
                     obj: zone,
@@ -52,7 +52,7 @@ function drawDiagram(cluster: Cluster, clearCallbacks: Array<() => void>) {
                     data: {
                         id: subnet_id,
                         label: subnet.name + "\n" + subnet.cidr,
-                        desc: `Subnet ${subnet.name} in zone ${zone.zone}`,
+                        desc: `Subnet <b>${subnet.name}</b> in zone <b>${zone.zone}</b>`,
                         parent: zone_id,
                         kind: "subnet",
                         obj: subnet,
@@ -65,7 +65,7 @@ function drawDiagram(cluster: Cluster, clearCallbacks: Array<() => void>) {
                     data: {
                         id: `reserved::${freecidr.cidr}`,
                         label: `reserved CIDR\n${freecidr.cidr})`,
-                        desc: `Reserved CIDR for future subnets in zone ${zone.zone}`,
+                        desc: `Reserved CIDR for future subnets in zone <b>${zone.zone}</b>`,
                         parent: zone_id,
                         kind: "subnet",
                         obj: freecidr,
@@ -80,7 +80,7 @@ function drawDiagram(cluster: Cluster, clearCallbacks: Array<() => void>) {
                 data: {
                     id: `reserved::${freecidr.cidr}`,
                     label: `reserved CIDR\n${freecidr.cidr})`,
-                    desc: `Reserved CIDR for future zones in region ${vpc.region}`,
+                    desc: `Reserved CIDR for future zones in region <b>${vpc.region}</b>`,
                     parent: vpc_id,
                     reserved: true,
                     kind: "zone",
