@@ -33,7 +33,7 @@ function drawTree(cluster: Cluster) {
 
         tree_parts.push("<li>");
         tree_parts.push(`<span class="toggle">
-            Region <b>${vpc.name}</b> (${vpc.cidr})
+            Region <b>${vpc.name}</b> @ ${vpc.region} (${vpc.cidr})
         </span>`);
 
         tree_parts.push("<ul class='nested'>");
@@ -44,7 +44,7 @@ function drawTree(cluster: Cluster) {
             const zone_id = `${vpc.name}::${zone.name}`;
             tree_parts.push("<li>");
             tree_parts.push(`<span class="toggle">
-                Zone <b>${zone.name}</b> (${zone.cidr})}
+                Zone <b>${zone.zone}</b> (${zone.cidr})}
             </span>`);
 
             tree_parts.push("<ul class='nested'>");

@@ -26,7 +26,8 @@ function drawDiagram(cluster: Cluster, clearCallbacks: Array<() => void>) {
         elements.push({
             data: {
                 id: vpc_id,
-                label: `${vpc.name} (${vpc.cidr})`,
+                label: `${vpc.name} @ ${vpc.region} (${vpc.cidr})`,
+                desc: `${vpc.name} VPC in region ${vpc.region}`,
                 kind: "vpc",
                 obj: vpc,
             },
@@ -38,6 +39,7 @@ function drawDiagram(cluster: Cluster, clearCallbacks: Array<() => void>) {
                 data: {
                     id: zone_id,
                     label: `${zone.name} (${zone.cidr})`,
+                    desc: `Zone ${zone.zone}`,
                     parent: vpc_id,
                     kind: "zone",
                     obj: zone,
@@ -50,6 +52,7 @@ function drawDiagram(cluster: Cluster, clearCallbacks: Array<() => void>) {
                     data: {
                         id: subnet_id,
                         label: subnet.name + "\n" + subnet.cidr,
+                        desc: `Subnet ${subnet.name} in zone ${zone.zone}`,
                         parent: zone_id,
                         kind: "subnet",
                         obj: subnet,
@@ -62,6 +65,7 @@ function drawDiagram(cluster: Cluster, clearCallbacks: Array<() => void>) {
                     data: {
                         id: `reserved::${freecidr.cidr}`,
                         label: `reserved CIDR\n${freecidr.cidr})`,
+                        desc: `Reserved CIDR for future subnets in zone ${zone.zone}`,
                         parent: zone_id,
                         kind: "subnet",
                         obj: freecidr,
@@ -76,6 +80,7 @@ function drawDiagram(cluster: Cluster, clearCallbacks: Array<() => void>) {
                 data: {
                     id: `reserved::${freecidr.cidr}`,
                     label: `reserved CIDR\n${freecidr.cidr})`,
+                    desc: `Reserved CIDR for future zones in region ${vpc.region}`,
                     parent: vpc_id,
                     reserved: true,
                     kind: "zone",
@@ -90,6 +95,7 @@ function drawDiagram(cluster: Cluster, clearCallbacks: Array<() => void>) {
             data: {
                 id: `reserved::${freecidr.cidr}`,
                 label: `reserved CIDR\n${freecidr.cidr})`,
+                desc: `Reserved CIDR for future VPCs`,
                 kind: "vpc",
                 obj: freecidr,
                 reserved: true,
@@ -219,7 +225,7 @@ function drawDiagram(cluster: Cluster, clearCallbacks: Array<() => void>) {
                           <label class="label">Desc</label>
                         </div>
                         <div class="field-body">
-                          <div class="field">${data.id}</div>
+                          <div class="field">${data.desc}</div>
                         </div>
                       </div>
 

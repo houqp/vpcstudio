@@ -16,6 +16,7 @@ const route_size_mask_diff = {
 export type SubnetRoutes = { [index: string]: SubnetRoute };
 
 interface RegionConfig {
+    region: string;
     zone_count: number;
 }
 
@@ -173,12 +174,13 @@ export class Zone extends CidrBlock {
     // input
     subnet_routes: SubnetRoutes;
     name: string;
+    zone: string;
     // output
     subnets: Array<Subnet>;
     freeCidrs: Array<FreeCidr>;
 
     constructor(
-        cidr: string, subnet_routes: SubnetRoutes, name: string | null = null,
+        cidr: string, subnet_routes: SubnetRoutes, name: string | null = null, zone: string,
     ) {
         super(cidr);
         this.subnet_routes = subnet_routes;
@@ -187,6 +189,7 @@ export class Zone extends CidrBlock {
         } else {
             this.name = "unnamed";
         }
+        this.zone = zone;
 
         const re = planZone(cidr, subnet_routes);
         this.subnets = re.subnets;
@@ -196,6 +199,7 @@ export class Zone extends CidrBlock {
     toJSON(): Object {
         let zone = {
             name: this.name,
+            zone: this.zone,
             cidr: this.cidr,
             subnets: [] as Array<Object>,
             reserved_cidrs: [] as Array<Object>,
@@ -215,7 +219,7 @@ interface VPCPlanResult {
     freeCidrs: Array<FreeCidr>;
 }
 
-function planVPC(cidr: string, zone_count: number, subnet_routes: SubnetRoutes): VPCPlanResult {
+function planVPC(cidr: string, region: string, zone_count: number, subnet_routes: SubnetRoutes): VPCPlanResult {
     const zone_mask = Cidr.mask(cidr) + log2ceil(zone_count);
 
     let zones = [];
@@ -226,10 +230,12 @@ function planVPC(cidr: string, zone_count: number, subnet_routes: SubnetRoutes):
         if (idx >= zone_count) {
             freeCidrs.push(new FreeCidr(zone_cidr));
         } else {
+            const zone_suffix = String.fromCharCode(97+idx);
             zones.push(new Zone(
                 zone_cidr,
                 subnet_routes,
-                `zone-${String.fromCharCode(97+idx)}`
+                zone_suffix,
+                `${region}${zone_suffix}`,
             ));
         }
 
@@ -248,12 +254,14 @@ export class VPC extends CidrBlock {
     subnet_routes: SubnetRoutes;
     zone_count: number;
     name: string;
+    region: string;
     // output
     zones: Array<Zone>;
     freeCidrs: Array<FreeCidr>;
 
     constructor(
         cidr: string,
+        region: string,
         zone_count: number,
         subnet_routes: SubnetRoutes,
         name: string | null = null,
@@ -261,13 +269,14 @@ export class VPC extends CidrBlock {
         super(cidr);
         this.zone_count = zone_count;
         this.subnet_routes = subnet_routes;
+        this.region = region;
         if (name === null) {
             this.name = "unnamed";
         } else {
             this.name = name;
         }
 
-        const re = planVPC(cidr, zone_count, subnet_routes);
+        const re = planVPC(cidr, region, zone_count, subnet_routes);
         this.zones = re.zones;
         this.freeCidrs = re.freeCidrs;
     }
@@ -275,6 +284,7 @@ export class VPC extends CidrBlock {
     toJSON(): any {
         let vpc = {
             name: this.name,
+            region: this.region,
             cidr: this.cidr,
             zones: [] as Array<Object>,
             reserved_cidrs: [] as Array<Object>,
@@ -307,12 +317,13 @@ function planCluster(cidr: string, regions: RegionsConfig, subnet_routes: Subnet
         if (idx >= region_cnt) {
             freeCidrs.push(new FreeCidr(region_cidr));
         } else {
-            const region_name = region_names[idx];
+            const vpc_name = region_names[idx];
             vpcs.push(new VPC(
                 region_cidr,
-                regions[region_name].zone_count,
+                regions[vpc_name].region,
+                regions[vpc_name].zone_count,
                 subnet_routes,
-                region_name,
+                vpc_name,
             ));
         }
 

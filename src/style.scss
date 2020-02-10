@@ -51,6 +51,11 @@ $color-vis-bg: #FFF;
 #vis {
     .box {
         background-color: $color-vis-bg;
+        display: none;
+    }
+
+    #diagram-container {
+        display: block;
     }
 }
 

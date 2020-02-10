@@ -21,6 +21,11 @@ function renderVPCTemplate(opts: VPCTemplateVars): string {
         public_subnets.push(`"${cidr}"`);
     }
 
+    let zones = [];
+    for (const zone of opts.zones) {
+        zones.push(`"${zone}"`);
+    }
+
     return `
 module "vpc-${opts.name}" {
   source = "terraform-aws-modules/vpc/aws"
@@ -28,7 +33,7 @@ module "vpc-${opts.name}" {
   name = "${opts.name}"
   cidr = "${opts.cidr}"
 
-  azs             = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
+  azs             = [${zones.join(", ")}]
   private_subnets = [${private_subnets.join(", ")}]
   public_subnets  = [${public_subnets.join(", ")}]
 
@@ -55,7 +60,7 @@ function drawTerraform(cluster: Cluster) {
         };
 
         for (const zone of vpc.zones) {
-            vpc_opts.zones.push(zone.cidr);
+            vpc_opts.zones.push(zone.zone);
 
             for (const subnet of zone.subnets) {
                 if (subnet.name === "public" || subnet.name.startsWith("public_")) {

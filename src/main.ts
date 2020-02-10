@@ -73,13 +73,23 @@ function main() {
 cidr: "10.10.0.0/15"
 # define number of VPCs and number of zones within each VPC
 regions:
-    "us-west-2":
+    "us-west":
+        region: "us-west-2"
         zone_count: 3
-    "us-east-2":
+    "us-east":
+        region: "us-east-2"
         zone_count: 3
-    "sa-east-1":
+    "sa":
+        region: "sa-east-1"
         zone_count: 3
-    "eu-north-1":
+    "eu":
+        region: "eu-north-1"
+        zone_count: 3
+    "staging":
+        region: "us-west-2"
+        zone_count: 3
+    "dev":
+        region: "us-east-2"
         zone_count: 3
 # define subnets within each zone
 subnet_routes:
