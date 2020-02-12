@@ -9,7 +9,27 @@ import drawDiagram from "./diagram_view";
 import drawJSON from "./json_view";
 import drawTerraform from "./terraform_view";
 
+class Ok<T> {
+    value: T;
+    constructor(value: T) {
+        this.value = value;
+    }
+}
+
+class Err<E> {
+    err: E;
+    constructor(err: E) {
+        this.err = err;
+    }
+}
+
+type Result<T, E> = Ok<T> | Err<E>;
+const ok = <T, E>(value: T): Result<T, E> => new Ok(value)
+const err = <T, E>(error: E): Result<T, E> => new Err(error)
+
+
 interface PlanConfig {
+    provider: string;
     cidr: string;
     regions: RegionsConfig;
     subnet_routes: SubnetRoutes;
@@ -23,21 +43,58 @@ function resetPlanInteractions() {
     }
 }
 
-function plan(cfgStr: string) {
+function loadConfig(cfgStr: string): Result<PlanConfig, string> {
+    const cfg = Yaml.safeLoad(cfgStr);
+
+    if (!cfg.provider) {
+        // default to aws as provider
+        cfg.provider = "aws";
+    }
+
+    if (!cfg.cidr) {
+        return err("Missing cidr key in config");
+    }
+
+    if (!cfg.regions) {
+        return err("Missing regions key in config");
+    }
+
+    for (const region_name in cfg.regions) {
+        const region = cfg.regions[region_name]
+        if (!region.region) {
+            return err(`Missing region key for "${region_name}" section`);
+        }
+        if (!region.zone_count) {
+            region.zone_count = 3;
+        }
+    }
+
+    return ok(cfg);
+}
+
+function plan(cfgStr: string): string | null {
     resetPlanInteractions();
     planClearCallbacks = [];
 
-    const cfg = <PlanConfig>Yaml.safeLoad(cfgStr);
+    let cfg: PlanConfig;
+    const re = loadConfig(cfgStr);
+    if (re instanceof Err) {
+        return re.err;
+    } else {
+        cfg = re.value;
+    }
 
     // TODO: assertValidRoute
 
     const cidr = cfg["cidr"]
-    const cluster = new Cluster(cidr, cfg.regions, cfg.subnet_routes)
+    const cluster = new Cluster(cfg.provider, cidr, cfg.regions, cfg.subnet_routes)
 
     drawDiagram(cluster, planClearCallbacks);
     drawTree(cluster);
     drawJSON(cluster);
     drawTerraform(cluster);
+
+    return null;
 }
 
 function setTabActive(target_tab: HTMLElement) {
@@ -62,6 +119,16 @@ function setTabActive(target_tab: HTMLElement) {
     const vis_box_id = <string>target_tab.dataset.target;
     const box = <HTMLElement>document.getElementById(vis_box_id);
     box.style.display = "block";
+}
+
+function setupModalClose(modal: HTMLElement) {
+    const bg = <HTMLElement>modal.querySelector(".modal-background");
+    const close = <HTMLElement>modal.querySelector(".modal-close");
+    const closeModal = () => {
+        modal.classList.remove("is-active");
+    }
+    bg.addEventListener("click", closeModal);
+    close.addEventListener("click", closeModal);
 }
 
 function main() {
@@ -118,9 +185,16 @@ subnet_routes:
     const json_tab = <HTMLElement>document.getElementById("json-tab");
     json_tab.addEventListener("click", function(){ setTabActive(json_tab) });
 
+    const overlay = <HTMLElement>document.getElementById("message-overlay");
     const planFromEditorValue = function() {
-        plan(editor.getSession().getValue());
+        const err_msg = plan(editor.getSession().getValue());
+        if (err_msg !== null) {
+            const b = <HTMLElement>overlay.querySelector(".box p");
+            b.innerText = `Config ERROR: ${err_msg}`;
+            overlay.classList.add("is-active");
+        }
     };
+    setupModalClose(overlay);
 
     const planBtn = <HTMLButtonElement>document.getElementById("plan");
     planBtn.addEventListener("click", Event => planFromEditorValue());
