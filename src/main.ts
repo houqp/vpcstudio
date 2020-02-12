@@ -49,6 +49,15 @@ function loadConfig(cfgStr: string): Result<PlanConfig, string> {
     if (!cfg.provider) {
         // default to aws as provider
         cfg.provider = "aws";
+    } else {
+        switch (cfg.provider) {
+            case "aws": {
+                break;
+            }
+            default: {
+                return err(`${cfg.provider} is not a supported provider type, please submit a pull request at: <a href="https://github.com/houqp/vpcstudio">https://github.com/houqp/vpcstudio</a>`);
+            }
+        }
     }
 
     if (!cfg.cidr) {
@@ -190,7 +199,7 @@ subnet_routes:
         const err_msg = plan(editor.getSession().getValue());
         if (err_msg !== null) {
             const b = <HTMLElement>overlay.querySelector(".box p");
-            b.innerText = `Config ERROR: ${err_msg}`;
+            b.innerHTML = `Config ERROR: ${err_msg}`;
             overlay.classList.add("is-active");
         }
     };
