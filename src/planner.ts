@@ -77,6 +77,18 @@ const intCommonCidr = (ips: number[]): string => {
  */
 const log2ceil = (x: number) => Math.ceil(Math.log2(x+1));
 
+/**
+ * number of cidr mask bits inorder to represent given number of subnets + one
+ * extra reserved spott
+ *
+ * 2 bits equals to 4 spots, which means we can have 1 reserved spot and less
+ * than 4 subnets
+ *
+ * 3 bits equals to 9 spots, which means we can have 1 reserved spot and less
+ * than 9 subnets
+ */
+const count2CidrMaskBits = log2ceil;
+
 const cidrSubtract = (xcidr: string, ycidr: string): string | null => {
     const [xmin, xmax] = Cidr.toIntRange(xcidr);
     const [ymin, ymax] = Cidr.toIntRange(ycidr);
@@ -144,7 +156,7 @@ interface ZonePlanResult {
 
 function planZone(provider: string, cidr: string, subnet_routes: SubnetRoutes): ZonePlanResult {
     let routes = [];
-    for (let route_name in subnet_routes) {
+    for (const route_name in subnet_routes) {
         routes.push({
             name: route_name,
             size_mask_diff: route_size_mask_diff[subnet_routes[route_name].size],
@@ -152,13 +164,13 @@ function planZone(provider: string, cidr: string, subnet_routes: SubnetRoutes): 
     }
     const sorted_routes = routes.sort((x, y) => x.size_mask_diff - y.size_mask_diff);
     const subnet_cnt = sorted_routes.length;
-    const subnet_mask = Cidr.mask(cidr) + log2ceil(subnet_cnt);
+    const subnet_mask = Cidr.mask(cidr) + count2CidrMaskBits(subnet_cnt);
 
     let avail_cidr: string | null = cidr;
     let subnets = [];
     let freeCidrs = [];
 
-    for (let route of sorted_routes) {
+    for (const route of sorted_routes) {
         const subnet_cidr = Cidr.subnets(avail_cidr, subnet_mask + route.size_mask_diff)[0];
         subnets.push(new Subnet(
             provider,
@@ -234,13 +246,13 @@ interface VPCPlanResult {
 }
 
 function planVPC(provider: string, cidr: string, region: string, zone_count: number, subnet_routes: SubnetRoutes): VPCPlanResult {
-    const zone_mask = Cidr.mask(cidr) + log2ceil(zone_count);
+    const zone_mask = Cidr.mask(cidr) + count2CidrMaskBits(zone_count);
 
     let zones = [];
     let freeCidrs = [];
 
     let idx = 0;
-    for (let zone_cidr of Cidr.subnets(cidr, zone_mask)) {
+    for (const zone_cidr of Cidr.subnets(cidr, zone_mask)) {
         if (idx >= zone_count) {
             freeCidrs.push(new FreeCidr(zone_cidr));
         } else {
@@ -325,13 +337,13 @@ interface ClusterPlanResult {
 function planCluster(provider: string, cidr: string, regions: RegionsConfig, subnet_routes: SubnetRoutes): ClusterPlanResult {
     const region_names = Object.keys(regions);
     const region_cnt = region_names.length;
-    const region_mask = Cidr.mask(cidr) + log2ceil(region_cnt);
+    const region_mask = Cidr.mask(cidr) + count2CidrMaskBits(region_cnt);
     let vpcs = [];
     let freeCidrs = [];
 
     let idx = 0;
     const region_cidrs = Cidr.subnets(cidr, region_mask);
-    for (let region_cidr of region_cidrs) {
+    for (const region_cidr of region_cidrs) {
         if (idx >= region_cnt) {
             freeCidrs.push(new FreeCidr(region_cidr));
         } else {
@@ -379,4 +391,72 @@ export class Cluster {
         this.vpcs = re.vpcs;
         this.freeCidrs = re.freeCidrs;
     }
+}
+
+export function AssertValidRoute(
+    cidr: string, region_count: number, zone_count: number, routes: SubnetRoutes,
+): string | null {
+    /**
+     * Allocate CIDR ranges using a balanced binary tree
+     *
+     * Let total_units = 2^log2ceil(subnet_count) * 2
+     * constraints:
+     *  l_unit = 4
+     *  m_unit = 2
+     *  s_unit = 1
+     *
+     *  l_count <= total_units / 4 - 1
+     *  m_count <= total_units / 2 - 4 * l_count - 1
+     *  s_count <= total_units - 2 * m_count - 4 * l_count - 1
+     *
+     * Tree view:
+     *
+     *         L
+     *      M     M
+     *     S S   S S
+     *
+     **/
+    const cidr_mask = Cidr.mask(cidr);
+    const avail_cidr_mask_bits = 32 - cidr_mask - count2CidrMaskBits(region_count) - count2CidrMaskBits(zone_count);
+
+    if (avail_cidr_mask_bits <= 0) {
+        return "Given CIDR is too small to meet region and zone requirements.";
+    }
+
+    // count number of routes
+    let subnet_route_count = 0;
+    for (const k in routes) {
+        subnet_route_count++;
+    }
+
+    const subnet_cidr_mask_bits = count2CidrMaskBits(subnet_route_count);
+    const total_units = Math.pow(2, subnet_cidr_mask_bits) * 2;
+    let avail_units = total_units;
+
+    for (const route_name in routes) {
+        const size = routes[route_name].size;
+        switch (size) {
+            case "l": {
+                avail_units -= 4;
+                break;
+            }
+            case "m": {
+                avail_units -= 2;
+                break;
+            }
+            case "s": {
+                avail_units -= 1;
+                break;
+            }
+            default: {
+                return `invalid size "${size}" for route: ${route_name}`
+            }
+        }
+        if (avail_units <= 0) {
+            // avail_units == 0 means we don't have space for reserved cidr range
+            return "Invalid route size configuration, sum of all route size is too large.";
+        }
+    }
+
+    return null
 }

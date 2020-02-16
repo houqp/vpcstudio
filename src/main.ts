@@ -3,6 +3,7 @@ import {
     Cluster,
     RegionsConfig,
     SubnetRoutes,
+    AssertValidRoute,
 } from "./planner";
 import drawTree from "./tree_view";
 import drawDiagram from "./diagram_view";
@@ -68,6 +69,16 @@ function loadConfig(cfgStr: string): Result<PlanConfig, string> {
         return err("Missing regions key in config");
     }
 
+    if (!cfg.subnet_routes) {
+        return err("Missing subnet_routes key in config");
+    }
+    for (const subnet_name in cfg.subnet_routes) {
+        if (!cfg.subnet_routes[subnet_name].size) {
+            // default to medium size if not specified
+            cfg.subnet_routes[subnet_name].size = "m";
+        }
+    }
+
     for (const region_name in cfg.regions) {
         const region = cfg.regions[region_name]
         if (!region.region) {
@@ -93,7 +104,16 @@ function plan(cfgStr: string): string | null {
         cfg = re.value;
     }
 
-    // TODO: assertValidRoute
+    const region_names = Object.keys(cfg.regions);
+    const err_msg = AssertValidRoute(
+        cfg.cidr,
+        region_names.length,
+        cfg.regions[region_names[0]].zone_count,
+        cfg.subnet_routes,
+    );
+    if (err_msg != null) {
+        return err_msg;
+    }
 
     const cidr = cfg["cidr"]
     const cluster = new Cluster(cfg.provider, cidr, cfg.regions, cfg.subnet_routes)
@@ -149,10 +169,10 @@ function main() {
 cidr: "10.10.0.0/15"
 # define number of VPCs and number of zones within each VPC
 regions:
-    "us-west":
+    "us1":
         region: "us-west-2"
         zone_count: 3
-    "us-east":
+    "us2":
         region: "us-east-2"
         zone_count: 3
     "sa":
