@@ -5,10 +5,17 @@
             "dom"
         ],
         "strict": true,
+        "typeRoots": [
+            "./typings",
+            "./node_modules/@types"
+        ],
         "target": "es2015"
     },
     "include": [
         "src/**/*"
     ],
-    "exclude": ["node_modules"]
+    "exclude": [
+        "node_modules",
+        "**/*.spec.ts"
+    ]
 }

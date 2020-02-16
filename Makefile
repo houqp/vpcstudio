@@ -1,6 +1,9 @@
 run:
 	parcel index.html
 
+test:
+	mocha -r ts-node/register src/**/*.spec.ts
+
 build:
 	parcel build --public-url . index.html
 
