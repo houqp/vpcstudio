@@ -14,7 +14,6 @@ Visit https://houqp.github.io/vpcstudio.
 
 Development
 -----------
-Or Run studio locally:
 
 ```bash
 npm install
