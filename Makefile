@@ -7,8 +7,8 @@ test:
 build:
 	parcel build --public-url . index.html
 
-ghpage: build
-	@echo "creating gh-pages branch"
+publish: build
+	@echo "pushing to gh-pages branch"
 	git prune
 	git checkout master
 	-@git branch -D gh-pages
@@ -17,9 +17,6 @@ ghpage: build
 	cp dist/* ./
 	git add *.js *.css *.html
 	git commit -m 'update dist'
-
-publish: ghpage
-	@echo "pushing to gh-pages branch"
 	git push -f origin gh-pages
 	git clean -f
 	git checkout master
