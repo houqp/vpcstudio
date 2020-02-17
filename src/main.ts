@@ -8,6 +8,7 @@ import {
 import drawTree from "./tree_view";
 import drawDiagram from "./diagram_view";
 import drawJSON from "./json_view";
+import drawPulumi from "./pulumi_view";
 import drawTerraform from "./terraform_view";
 
 class Ok<T> {
@@ -122,6 +123,7 @@ function plan(cfgStr: string): string | null {
     drawTree(cluster);
     drawJSON(cluster);
     drawTerraform(cluster);
+    drawPulumi(cluster);
 
     return null;
 }
@@ -210,6 +212,9 @@ subnet_routes:
 
     const terraform_tab = <HTMLElement>document.getElementById("terraform-tab");
     terraform_tab.addEventListener("click", function(){ setTabActive(terraform_tab) });
+
+    const pulumi_tab = <HTMLElement>document.getElementById("pulumi-tab");
+    pulumi_tab.addEventListener("click", function(){ setTabActive(pulumi_tab) });
 
     const json_tab = <HTMLElement>document.getElementById("json-tab");
     json_tab.addEventListener("click", function(){ setTabActive(json_tab) });

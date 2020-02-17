@@ -120,15 +120,17 @@ const cidrSubtract = (xcidr: string, ycidr: string): string | null => {
 };
 
 export class Subnet extends CidrBlock {
-    provider: string
+    provider: string;
     name: string;
+    zone: string;
 
     constructor(
-        provider: string, cidr: string, name: string,
+        provider: string, cidr: string, name: string, zone: string,
     ) {
         super(cidr);
         this.provider = provider;
         this.name = name;
+        this.zone = zone;
         switch (provider) {
             case "aws": {
                 // From AWS doc: The first 4 IP addresses and the last IP
@@ -154,7 +156,9 @@ interface ZonePlanResult {
     freeCidrs: Array<FreeCidr>;
 }
 
-function planZone(provider: string, cidr: string, subnet_routes: SubnetRoutes): ZonePlanResult {
+function planZone(
+    provider: string, cidr: string, subnet_routes: SubnetRoutes, zone: string,
+): ZonePlanResult {
     let routes = [];
     for (const route_name in subnet_routes) {
         routes.push({
@@ -176,6 +180,7 @@ function planZone(provider: string, cidr: string, subnet_routes: SubnetRoutes): 
             provider,
             subnet_cidr,
             route.name,
+            zone,
         ));
 
         avail_cidr = cidrSubtract(avail_cidr, subnet_cidr);
@@ -217,7 +222,7 @@ export class Zone extends CidrBlock {
         this.zone = zone;
         this.provider = provider;
 
-        const re = planZone(provider, cidr, subnet_routes);
+        const re = planZone(provider, cidr, subnet_routes, this.zone);
         this.subnets = re.subnets;
         this.freeCidrs = re.freeCidrs;
     }

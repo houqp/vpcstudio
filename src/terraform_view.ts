@@ -40,15 +40,19 @@ module "vpc-${opts.name}" {
   enable_nat_gateway = true
   enable_vpn_gateway = true
 
-  tags = {
-    Terraform = "true"
-    Source = "vpcstudio"
-  }
+  tags = local.vpc_common_tags
 }`;
 }
 
 function drawTerraform(cluster: Cluster) {
-    let code_parts = [];
+    let code_parts = [
+        "locals {",
+        `  vpc_common_tags = {`,
+        `    Terraform = "true"`,
+        `    Source    = "vpcstudio"`,
+        `  }`,
+        "}",
+    ];
 
     for (const vpc of cluster.vpcs) {
         let vpc_opts = {
