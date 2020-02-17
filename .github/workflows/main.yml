@@ -22,7 +22,6 @@ jobs:
         CI: true
 
     # build and publish to githube pages
-    - run: make ghpage
     - run: bash .github/workflows/publish.sh
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
