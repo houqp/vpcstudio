@@ -33,7 +33,8 @@
     "typescript": "^3.7.5"
   },
   "scripts": {
-    "test": "mocha -r ts-node/register src/**/*.spec.ts"
+    "test": "mocha -r ts-node/register src/**/*.spec.ts",
+    "lint": "eslint . --ext .ts"
   },
   "author": "QP",
   "license": "MIT"

@@ -2,10 +2,10 @@ run:
 	parcel index.html
 
 check:
-	eslint . --ext .ts
+	npm run lint
 
 test:
-	npm test
+	npm run test
 
 build:
 	parcel build --public-url . index.html
