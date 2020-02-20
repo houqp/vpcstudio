@@ -11,17 +11,17 @@ interface VPCTemplateVars {
 }
 
 function renderVPCTemplate(opts: VPCTemplateVars): string {
-    let private_subnets = [];
+    const private_subnets = [];
     for (const cidr of opts.private_subnets) {
         private_subnets.push(`"${cidr}"`);
     }
 
-    let public_subnets = [];
+    const public_subnets = [];
     for (const cidr of opts.public_subnets) {
         public_subnets.push(`"${cidr}"`);
     }
 
-    let zones = [];
+    const zones = [];
     for (const zone of opts.zones) {
         zones.push(`"${zone}"`);
     }
@@ -44,8 +44,8 @@ module "vpc-${opts.name}" {
 }`;
 }
 
-function drawTerraform(cluster: Cluster) {
-    let code_parts = [
+function drawTerraform(cluster: Cluster): void {
+    const code_parts = [
         "locals {",
         `  vpc_common_tags = {`,
         `    Terraform = "true"`,
@@ -55,12 +55,12 @@ function drawTerraform(cluster: Cluster) {
     ];
 
     for (const vpc of cluster.vpcs) {
-        let vpc_opts = {
+        const vpc_opts = {
             name: vpc.name,
             cidr: vpc.cidr,
-            zones: <string[]>[],
-            public_subnets: <string[]>[],
-            private_subnets: <string[]>[],
+            zones: [] as string[],
+            public_subnets: [] as string[],
+            private_subnets: [] as string[],
         };
 
         for (const zone of vpc.zones) {
@@ -79,7 +79,7 @@ function drawTerraform(cluster: Cluster) {
     }
 
     const code = code_parts.join("\n");
-    let div = <HTMLElement>document.getElementById('terraform');
+    const div = document.getElementById('terraform') as HTMLElement;
     div.innerHTML = `<pre>${code}</pre>`
 }
 

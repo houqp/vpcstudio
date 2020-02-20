@@ -17,10 +17,10 @@ interface Popper {
     destroy(): void;
 }
 
-function drawDiagram(cluster: Cluster, clearCallbacks: Array<() => void>) {
-    let elements = [];
+function drawDiagram(cluster: Cluster, clearCallbacks: (() => void)[]): void {
+    const elements = [];
 
-    for (let vpc of cluster.vpcs) {
+    for (const vpc of cluster.vpcs) {
         const vpc_id = vpc.name;
 
         elements.push({
@@ -33,7 +33,7 @@ function drawDiagram(cluster: Cluster, clearCallbacks: Array<() => void>) {
             },
         });
 
-        for (let zone of vpc.zones) {
+        for (const zone of vpc.zones) {
             const zone_id = `${vpc.name}::${zone.name}`;
             elements.push({
                 data: {
@@ -46,7 +46,7 @@ function drawDiagram(cluster: Cluster, clearCallbacks: Array<() => void>) {
                 },
             });
 
-            for (let subnet of zone.subnets) {
+            for (const subnet of zone.subnets) {
                 const subnet_id = `${zone_id}::${subnet.name}`
                 elements.push({
                     data: {
@@ -60,7 +60,7 @@ function drawDiagram(cluster: Cluster, clearCallbacks: Array<() => void>) {
                 });
             }
 
-            for (let freecidr of zone.freeCidrs) {
+            for (const freecidr of zone.freeCidrs) {
                 elements.push({
                     data: {
                         id: `reserved::${freecidr.cidr}`,
@@ -75,7 +75,7 @@ function drawDiagram(cluster: Cluster, clearCallbacks: Array<() => void>) {
             }
         }
 
-        for (let freecidr of vpc.freeCidrs) {
+        for (const freecidr of vpc.freeCidrs) {
             elements.push({
                 data: {
                     id: `reserved::${freecidr.cidr}`,
@@ -90,7 +90,7 @@ function drawDiagram(cluster: Cluster, clearCallbacks: Array<() => void>) {
         }
     }
 
-    for (let freecidr of cluster.freeCidrs) {
+    for (const freecidr of cluster.freeCidrs) {
         elements.push({
             data: {
                 id: `reserved::${freecidr.cidr}`,
@@ -103,8 +103,8 @@ function drawDiagram(cluster: Cluster, clearCallbacks: Array<() => void>) {
         });
     }
 
-    const diagramDiv = <HTMLDivElement>document.getElementById("diagram");
-    let cy = cytoscape({
+    const diagramDiv = document.getElementById("diagram") as HTMLDivElement;
+    const cy = cytoscape({
         container: diagramDiv,
         elements: elements,
         style: [ // the stylesheet for the graph
@@ -185,16 +185,17 @@ function drawDiagram(cluster: Cluster, clearCallbacks: Array<() => void>) {
 
     cy.nodes().noOverlap({ padding: 5 });
 
-    let popper: Popper|null = null;
+    let details_popper: Popper|null = null;
 
-    const closePopper = () => {
-        if (popper !== null) {
-            popper.destroy();
-            popper = null;
+    const closePopper = (): void => {
+        if (details_popper !== null) {
+            details_popper.destroy();
+            details_popper = null;
         }
     };
     clearCallbacks.push(closePopper);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     cy.on("click", function(event: any) {
         closePopper();
 
@@ -205,9 +206,9 @@ function drawDiagram(cluster: Cluster, clearCallbacks: Array<() => void>) {
         const node = event.target;
         const data = event.target.data();
 
-        popper = <Popper>node.popper({
+        details_popper = node.popper({
             content: () => {
-                let div = document.createElement('div');
+                const div = document.createElement('div');
                 div.innerHTML = `
                     <div id="diagram-popper" class="box">
 
@@ -273,11 +274,11 @@ function drawDiagram(cluster: Cluster, clearCallbacks: Array<() => void>) {
             popper: {
                 removeOnDestroy: true,
             },
-        });
+        }) as Popper;
 
-        const updatePopper = () => {
-            if (popper !== null) {
-                popper.scheduleUpdate();
+        const updatePopper = (): void => {
+            if (details_popper !== null) {
+                details_popper.scheduleUpdate();
             }
         };
 

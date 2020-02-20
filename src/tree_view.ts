@@ -10,7 +10,7 @@ function genCidrstats(cidr: CidrBlock): string {
 }
 
 function genFreeCidrEntry(freecidr: CidrBlock): string {
-    let entry_parts = [];
+    const entry_parts = [];
     entry_parts.push("<li>");
     entry_parts.push(`<span class="toggle">
         reserved CIDR (${freecidr.cidr})
@@ -24,13 +24,11 @@ function genFreeCidrEntry(freecidr: CidrBlock): string {
     return entry_parts.join("\n");
 }
 
-function drawTree(cluster: Cluster) {
-    let div = <HTMLElement>document.getElementById('tree');
-    let tree_parts = ["<ul>"];
+function drawTree(cluster: Cluster): void {
+    const div = (document.getElementById('tree') as HTMLElement);
+    const tree_parts = ["<ul>"];
 
-    for (let vpc of cluster.vpcs) {
-        const vpc_id = vpc.name;
-
+    for (const vpc of cluster.vpcs) {
         tree_parts.push("<li>");
         tree_parts.push(`<span class="toggle">
             Region <b>${vpc.name}</b> @ ${vpc.region} (${vpc.cidr})
@@ -39,9 +37,7 @@ function drawTree(cluster: Cluster) {
         tree_parts.push("<ul class='nested'>");
         tree_parts.push(genCidrstats(vpc));
 
-        for (let zone of vpc.zones) {
-
-            const zone_id = `${vpc.name}::${zone.name}`;
+        for (const zone of vpc.zones) {
             tree_parts.push("<li>");
             tree_parts.push(`<span class="toggle">
                 Zone <b>${zone.zone}</b> (${zone.cidr})}
@@ -50,8 +46,7 @@ function drawTree(cluster: Cluster) {
             tree_parts.push("<ul class='nested'>");
             tree_parts.push(genCidrstats(zone));
 
-            for (let subnet of zone.subnets) {
-                const subnet_id = `${zone_id}::${subnet.name}`
+            for (const subnet of zone.subnets) {
                 tree_parts.push("<li>");
                 tree_parts.push(`<span class="toggle">
                     Subnet <b>${subnet.name}</b> (${subnet.cidr})
@@ -62,7 +57,7 @@ function drawTree(cluster: Cluster) {
                 tree_parts.push("</li>");
             }
 
-            for (let freecidr of zone.freeCidrs) {
+            for (const freecidr of zone.freeCidrs) {
                 tree_parts.push(genFreeCidrEntry(freecidr));
             }
             tree_parts.push("</ul>");
@@ -70,7 +65,7 @@ function drawTree(cluster: Cluster) {
             tree_parts.push("</li>");
         }
 
-        for (let freecidr of vpc.freeCidrs) {
+        for (const freecidr of vpc.freeCidrs) {
             tree_parts.push(genFreeCidrEntry(freecidr));
         }
 
@@ -78,7 +73,7 @@ function drawTree(cluster: Cluster) {
         tree_parts.push("</li>");
     }
 
-    for (let freecidr of cluster.freeCidrs) {
+    for (const freecidr of cluster.freeCidrs) {
         tree_parts.push(genFreeCidrEntry(freecidr));
     }
 

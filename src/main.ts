@@ -20,8 +20,8 @@ class Ok<T> {
 
 class Err<E> {
     err: E;
-    constructor(err: E) {
-        this.err = err;
+    constructor(e: E) {
+        this.err = e;
     }
 }
 
@@ -37,10 +37,10 @@ interface PlanConfig {
     subnet_routes: SubnetRoutes;
 }
 
-let planClearCallbacks: Array<() => void> = [];
+let planClearCallbacks: (() => void)[] = [];
 
-function resetPlanInteractions() {
-    for (let cb of planClearCallbacks) {
+function resetPlanInteractions(): void {
+    for (const cb of planClearCallbacks) {
         cb();
     }
 }
@@ -80,8 +80,8 @@ function loadConfig(cfgStr: string): Result<PlanConfig, string> {
         }
     }
 
-    for (const region_name in cfg.regions) {
-        const region = cfg.regions[region_name]
+    for (const region_name of Object.keys(cfg.regions)) {
+        const region = cfg.regions[region_name];
         if (!region.region) {
             return err(`Missing region key for "${region_name}" section`);
         }
@@ -116,8 +116,8 @@ function plan(cfgStr: string): string | null {
         return err_msg;
     }
 
-    const cidr = cfg["cidr"]
-    const cluster = new Cluster(cfg.provider, cidr, cfg.regions, cfg.subnet_routes)
+    const cidr = cfg.cidr;
+    const cluster = new Cluster(cfg.provider, cidr, cfg.regions, cfg.subnet_routes);
 
     drawDiagram(cluster, planClearCallbacks);
     drawTree(cluster);
@@ -128,10 +128,10 @@ function plan(cfgStr: string): string | null {
     return null;
 }
 
-function setTabActive(target_tab: HTMLElement) {
+function setTabActive(target_tab: HTMLElement): void {
     resetPlanInteractions();
 
-    const vis_section = <HTMLElement>document.getElementById("vis");
+    const vis_section = document.getElementById("vis") as HTMLElement;
     const active_tab = vis_section.querySelector(".is-active");
     if (active_tab != null && active_tab !== target_tab) {
         active_tab.classList.remove("is-active");
@@ -139,30 +139,30 @@ function setTabActive(target_tab: HTMLElement) {
     target_tab.classList.add("is-active");
 
     // hide container for all visualization
-    const vis_container = <HTMLElement>document.getElementById("vis");
+    const vis_container = document.getElementById("vis") as HTMLElement;
     const vis_boxes = vis_container.querySelectorAll(".container .box");
     for (let i = 0; i < vis_boxes.length; i ++) {
-        const box = <HTMLElement>vis_boxes[i];
+        const box = vis_boxes[i] as HTMLElement;
         box.style.display = "none";
     }
 
     // show container for selected visualization
-    const vis_box_id = <string>target_tab.dataset.target;
-    const box = <HTMLElement>document.getElementById(vis_box_id);
+    const vis_box_id = target_tab.dataset.target as string;
+    const box = document.getElementById(vis_box_id) as HTMLElement;
     box.style.display = "block";
 }
 
-function setupModalClose(modal: HTMLElement) {
-    const bg = <HTMLElement>modal.querySelector(".modal-background");
-    const close = <HTMLElement>modal.querySelector(".modal-close");
-    const closeModal = () => {
+function setupModalClose(modal: HTMLElement): void {
+    const bg = modal.querySelector(".modal-background") as HTMLElement;
+    const close = modal.querySelector(".modal-close") as HTMLElement;
+    const closeModal = (): void => {
         modal.classList.remove("is-active");
     }
     bg.addEventListener("click", closeModal);
     close.addEventListener("click", closeModal);
 }
 
-function main() {
+function main(): void {
     const editor = ace.edit("config");
     editor.setTheme("ace/theme/tomorrow");
     editor.session.setMode("ace/mode/yaml");
@@ -200,38 +200,37 @@ subnet_routes:
 `
     editor.getSession().setValue(sampleConfig);
 
-    const diagram_tab = <HTMLElement>document.getElementById("diagram-tab");
-    const showDiagram = function(){
+    const diagram_tab = document.getElementById("diagram-tab") as HTMLElement;
+    const showDiagram = function(): void {
         setTabActive(diagram_tab);
     };
     diagram_tab.addEventListener("click", showDiagram);
 
-    const tree_tab = <HTMLElement>document.getElementById("tree-tab");
-    const showTree = function(){ setTabActive(tree_tab) };
-    tree_tab.addEventListener("click", showTree);
+    const tree_tab = document.getElementById("tree-tab") as HTMLElement;
+    tree_tab.addEventListener("click", function(){ setTabActive(tree_tab) });
 
-    const terraform_tab = <HTMLElement>document.getElementById("terraform-tab");
+    const terraform_tab = document.getElementById("terraform-tab") as HTMLElement;
     terraform_tab.addEventListener("click", function(){ setTabActive(terraform_tab) });
 
-    const pulumi_tab = <HTMLElement>document.getElementById("pulumi-tab");
+    const pulumi_tab = document.getElementById("pulumi-tab") as HTMLElement;
     pulumi_tab.addEventListener("click", function(){ setTabActive(pulumi_tab) });
 
-    const json_tab = <HTMLElement>document.getElementById("json-tab");
+    const json_tab = document.getElementById("json-tab") as HTMLElement;
     json_tab.addEventListener("click", function(){ setTabActive(json_tab) });
 
-    const overlay = <HTMLElement>document.getElementById("message-overlay");
-    const planFromEditorValue = function() {
+    const overlay = document.getElementById("message-overlay") as HTMLElement;
+    const planFromEditorValue = function(): void {
         const err_msg = plan(editor.getSession().getValue());
         if (err_msg !== null) {
-            const b = <HTMLElement>overlay.querySelector(".box p");
+            const b = overlay.querySelector(".box p") as HTMLElement;
             b.innerHTML = `Config ERROR: ${err_msg}`;
             overlay.classList.add("is-active");
         }
     };
     setupModalClose(overlay);
 
-    const planBtn = <HTMLButtonElement>document.getElementById("plan");
-    planBtn.addEventListener("click", Event => planFromEditorValue());
+    const planBtn = document.getElementById("plan") as HTMLButtonElement;
+    planBtn.addEventListener("click", (): void => planFromEditorValue());
     planFromEditorValue();
 
     // default to show diagram visualization

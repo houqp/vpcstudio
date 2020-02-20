@@ -8,25 +8,25 @@ interface NodeDimen {
     h: number;
 }
 
-function GridLayout(options: Object) {
+function GridLayout(options: object): void {
     this.options = options;
 }
 
-GridLayout.prototype.run = function() {
+GridLayout.prototype.run = function(): object {
     const options = this.options;
     const cy = options.cy;
 
     // node dimension indexed by node.id()
-    let nodeDimen: {[index: string]: NodeDimen} = {};
+    const nodeDimen: {[index: string]: NodeDimen} = {};
     // node position indexed by node.id()
-    let nodePos: {[index: string]: NodePosition} = {};
+    const nodePos: {[index: string]: NodePosition} = {};
 
     // first pass to calculate node dimensions
     const padding = 10;
     const margin = 40;
 
     const vpc_nodes = cy.nodes("[kind = 'vpc']");
-    for (let vpc of vpc_nodes) {
+    for (const vpc of vpc_nodes) {
         let w = padding;
         let h = 2 * padding;
         let max_zone_height = 0;
@@ -69,14 +69,14 @@ GridLayout.prototype.run = function() {
     // (position and size), as those values are automatically inferred by the
     // positions and dimensions of the descendant nodes.
     let y = 0;
-    for (let vpc of vpc_nodes) {
+    for (const vpc of vpc_nodes) {
         const vpc_id = vpc.id();
         let x = padding;
         nodePos[vpc_id] = {x: x, y: y};
 
-        for (let zone of vpc.children()) {
+        for (const zone of vpc.children()) {
             let ys = y;
-            for (let subnet of zone.children()) {
+            for (const subnet of zone.children()) {
                 const subnet_id = subnet.id();
                 nodePos[subnet_id] = {x: x, y: ys};
                 ys += nodeDimen[subnet_id].h + padding;
@@ -94,6 +94,7 @@ GridLayout.prototype.run = function() {
     }
 
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
     cy.nodes().layoutPositions(this, options, function(node: any, i: number) {
         const id = node.id();
         let pos = nodePos[id];
@@ -106,7 +107,8 @@ GridLayout.prototype.run = function() {
     return this; // chaining
 }
 
-let GridLayoutReg = function(cytoscape: any) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const GridLayoutReg = function(cytoscape: any): void {
     if (!cytoscape) { return ; }
     cytoscape("layout", "vpc", GridLayout);
 };

@@ -16,7 +16,7 @@ interface VPCTemplateVars {
 }
 
 function renderVPCTemplate(opts: VPCTemplateVars): string {
-    let private_subnets = [];
+    const private_subnets = [];
     for (const sn of opts.private_subnets) {
         private_subnets.push(`        {
             type: "private",
@@ -26,7 +26,7 @@ function renderVPCTemplate(opts: VPCTemplateVars): string {
         }`);
     }
 
-    let public_subnets = [];
+    const public_subnets = [];
     for (const sn of opts.public_subnets) {
         public_subnets.push(`        {
             type: "public",
@@ -48,8 +48,8 @@ ${public_subnets.join("\n")}
 });`;
 }
 
-function drawPulumi(cluster: Cluster) {
-    let code_parts = [
+function drawPulumi(cluster: Cluster): void {
+    const code_parts = [
         `import * as awsx from "@pulumi/awsx";`,
         `
 const vpc_common_tags = {
@@ -61,11 +61,11 @@ let vpcs = {};`,
     ];
 
     for (const vpc of cluster.vpcs) {
-        let vpc_opts = {
+        const vpc_opts = {
             name: vpc.name,
             cidr: vpc.cidr,
-            public_subnets: <SubnetEntry[]>[],
-            private_subnets: <SubnetEntry[]>[],
+            public_subnets: [] as SubnetEntry[],
+            private_subnets: [] as SubnetEntry[],
         };
 
         for (const zone of vpc.zones) {
@@ -83,7 +83,7 @@ let vpcs = {};`,
 
     code_parts.push("export vpcs");
     const code = code_parts.join("\n");
-    let div = <HTMLElement>document.getElementById('pulumi');
+    const div = document.getElementById('pulumi') as HTMLElement;
     div.innerHTML = `<pre>${code}</pre>`
 }
 

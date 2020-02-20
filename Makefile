@@ -1,8 +1,11 @@
 run:
 	parcel index.html
 
+check:
+	eslint . --ext .ts
+
 test:
-	mocha -r ts-node/register src/**/*.spec.ts
+	npm test
 
 build:
 	parcel build --public-url . index.html

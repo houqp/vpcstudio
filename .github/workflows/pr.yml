@@ -17,6 +17,7 @@ jobs:
       with:
         node-version: 10.x
     - run: npm install
-    - run: npm test
+    - run: make check
+    - run: make test
       env:
         CI: true

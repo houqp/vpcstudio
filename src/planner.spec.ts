@@ -46,13 +46,13 @@ describe("Plan cluster", () => {
             }
 
         }
-        const vpc = c.vpcs[0];
-        const zone = vpc.zones[0];
-        expect(zone.cidr).to.equal("10.0.0.0/19");
-        expect(zone.subnets[0].cidr).to.equal("10.0.0.0/20");
-        expect(zone.subnets[1].cidr).to.equal("10.0.16.0/21");
-        expect(zone.subnets[2].cidr).to.equal("10.0.24.0/22");
-        expect(zone.freeCidrs[0].cidr).to.equal("10.0.28.0/22");
+        const vpc1 = c.vpcs[0];
+        const zone1 = vpc1.zones[0];
+        expect(zone1.cidr).to.equal("10.0.0.0/19");
+        expect(zone1.subnets[0].cidr).to.equal("10.0.0.0/20");
+        expect(zone1.subnets[1].cidr).to.equal("10.0.16.0/21");
+        expect(zone1.subnets[2].cidr).to.equal("10.0.24.0/22");
+        expect(zone1.freeCidrs[0].cidr).to.equal("10.0.28.0/22");
     });
 
     it("should support cluster with 2 subnets with different sizes", () => {
@@ -92,12 +92,12 @@ describe("Plan cluster", () => {
             }
 
         }
-        const vpc = c.vpcs[0];
-        const zone = vpc.zones[0];
-        expect(zone.cidr).to.equal("10.0.0.0/19");
-        expect(zone.subnets[0].cidr).to.equal("10.0.0.0/20");
-        expect(zone.subnets[1].cidr).to.equal("10.0.16.0/21");
-        expect(zone.freeCidrs[0].cidr).to.equal("10.0.24.0/21");
+        const vpc1 = c.vpcs[0];
+        const zone1 = vpc1.zones[0];
+        expect(zone1.cidr).to.equal("10.0.0.0/19");
+        expect(zone1.subnets[0].cidr).to.equal("10.0.0.0/20");
+        expect(zone1.subnets[1].cidr).to.equal("10.0.16.0/21");
+        expect(zone1.freeCidrs[0].cidr).to.equal("10.0.24.0/21");
     });
 });
 
