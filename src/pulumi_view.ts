@@ -23,7 +23,7 @@ function renderVPCTemplate(opts: VPCTemplateVars): string {
             name: "${sn.name}",
             location: {cidrBlock: "${sn.cidr}", availabilityZone: "${sn.zone}"},
             tags: vpc_common_tags,
-        }`);
+        },`);
     }
 
     const public_subnets = [];
@@ -33,7 +33,7 @@ function renderVPCTemplate(opts: VPCTemplateVars): string {
             name: "${sn.name}",
             location: {cidrBlock: "${sn.cidr}", availabilityZone: "${sn.zone}"},
             tags: vpc_common_tags,
-        }`);
+        },`);
     }
 
     return `
@@ -56,8 +56,7 @@ const vpc_common_tags = {
     "Terraform": "true",
     "Source": "vpcstudio",
 };
-let vpcs = {};`,
-
+const vpcs: { [index: string]: awsx.ec2.Vpc } = {};`,
     ];
 
     for (const vpc of cluster.vpcs) {
@@ -81,7 +80,7 @@ let vpcs = {};`,
         code_parts.push(renderVPCTemplate(vpc_opts));
     }
 
-    code_parts.push("\nexport vpcs;");
+    code_parts.push("\nexport {vpcs};");
     const code = code_parts.join("\n");
     const div = document.getElementById('pulumi') as HTMLElement;
     div.innerHTML = `<pre>${code}</pre>`
