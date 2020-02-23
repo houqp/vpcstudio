@@ -81,7 +81,7 @@ let vpcs = {};`,
         code_parts.push(renderVPCTemplate(vpc_opts));
     }
 
-    code_parts.push("export vpcs");
+    code_parts.push("\nexport vpcs;");
     const code = code_parts.join("\n");
     const div = document.getElementById('pulumi') as HTMLElement;
     div.innerHTML = `<pre>${code}</pre>`
