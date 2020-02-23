@@ -15,7 +15,7 @@ function renderVPCSubnetRoutes(vpc: VPC): string {
     const subnet_cidrs: { [index: string]: string[]} = {};
     for (const zone of vpc.zones) {
         for (const subnet of zone.subnets) {
-            if (!subnet_cidrs.hasOwnProperty(subnet.name)) {
+            if (subnet_cidrs[subnet.name] === undefined) {
                 subnet_cidrs[subnet.name] = [];
             }
             subnet_cidrs[subnet.name].push(`"${subnet.cidr}"`);
