@@ -191,12 +191,15 @@ regions:
         zone_count: 3
 # define subnets within each zone
 subnet_routes:
+    # publically accessbile services like ALB
     public:
         size: s
+    # internal services
     private_company:
-        size: m
-    private_team:
         size: l
+    # data store and message bus that should not have outbound internet access
+    intra_infra:
+        size: m
 `
     editor.getSession().setValue(sampleConfig);
 

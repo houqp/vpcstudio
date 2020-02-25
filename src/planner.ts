@@ -1,7 +1,10 @@
 import {
-    cidr as Cidr,
-    ip as Ip,
-} from "node-cidr";
+    CidrBlock,
+    cidrMask,
+    cidrCountIps,
+    cidrSubnets,
+    IpSet,
+} from "./cidrtools";
 
 interface SubnetRoute {
     size: "s"|"m"|"l";
@@ -22,22 +25,6 @@ interface RegionConfig {
 
 export type RegionsConfig = { [index: string]: RegionConfig };
 
-export class CidrBlock {
-    // input
-    cidr: string;
-    // output
-    ip_count: number;
-    ip_start: string;
-    ip_end: string;
-
-    constructor(cidr: string) {
-        this.cidr = cidr;
-        this.ip_count = Cidr.count(cidr);
-        this.ip_start = Cidr.min(cidr);
-        this.ip_end = Cidr.max(cidr);
-    }
-}
-
 class FreeCidr extends CidrBlock {
     constructor(cidr: string) {
         super(cidr);
@@ -48,27 +35,6 @@ class FreeCidr extends CidrBlock {
         };
     }
 }
-
-const intCommonCidr = (ips: number[]): string => {
-  const ipInt = ips.sort();
-  let mask = 0;
-  const range = ipInt[ipInt.length - 1] - ipInt[0];
-  let baseIp = ipInt[0];
-  for (let i = 0; i <= 32; i++) {
-    mask = 32 - i;
-    const exp = 2 ** (32 - mask);
-    if (exp - 1 >= range) {
-      if (ipInt[0] % exp !== 0) {
-        baseIp = ipInt[0] - ipInt[0] % exp;
-      }
-      if (ipInt[ipInt.length - 1] > baseIp + exp) {
-        mask--;
-      }
-      break;
-    }
-  }
-  return `${Ip.toString(baseIp)}/${mask}`;
-};
 
 /**
  * 2 -> 2
@@ -88,36 +54,6 @@ const log2ceil = (x: number): number => Math.ceil(Math.log2(x+1));
  * than 9 subnets
  */
 const count2CidrMaskBits = log2ceil;
-
-const cidrSubtract = (xcidr: string, ycidr: string): string | null => {
-    const [xmin, xmax] = Cidr.toIntRange(xcidr);
-    const [ymin, ymax] = Cidr.toIntRange(ycidr);
-
-    if (xmin > ymin || xmax < ymax) {
-        // xcidr needs to be a super set of ycidr
-        return null;
-    }
-
-    let new_min: number;
-    let new_max: number;
-    if (xmin === ymin) {
-        new_min = ymax+1;
-        new_max = xmax;
-    } else if (xmax === ymax) {
-        new_min = xmin;
-        new_max = ymin-1;
-    } else {
-        // ycidr needs to be either a prefix or suffix of xcidr
-        return null;
-    }
-
-    if (new_min > new_max) {
-        // FIXME: return 0 when new_min == new_max
-        return null;
-    }
-
-    return intCommonCidr([new_min, new_max]);
-};
 
 export class Subnet extends CidrBlock {
     provider: string;
@@ -167,28 +103,28 @@ function planZone(
     }
     const sorted_routes = routes.sort((x, y) => x.size_mask_diff - y.size_mask_diff);
     const subnet_cnt = sorted_routes.length;
-    const subnet_mask = Cidr.mask(cidr) + count2CidrMaskBits(subnet_cnt);
+    const subnet_mask = cidrMask(cidr) + count2CidrMaskBits(subnet_cnt);
 
-    let avail_cidr: string | null = cidr;
+    const avail_ipset = new IpSet([cidr]);
     const subnets = [];
     const freeCidrs = [];
 
     for (const route of sorted_routes) {
-        const subnet_cidr = Cidr.subnets(avail_cidr, subnet_mask + route.size_mask_diff)[0];
+        const subnet_cidr = avail_ipset.nextCidr(subnet_mask + route.size_mask_diff);
+        avail_ipset.subtract(subnet_cidr);
+
         subnets.push(new Subnet(
             provider,
             subnet_cidr,
             route.name,
             zone,
         ));
-
-        avail_cidr = cidrSubtract(avail_cidr, subnet_cidr);
-        if (avail_cidr === null) {
-            break
+        if (avail_ipset.ipCount() == 0) {
+            break;
         }
     }
 
-    if (avail_cidr !== null) {
+    for (const avail_cidr of avail_ipset.getCidrs()) {
         freeCidrs.push(new FreeCidr(avail_cidr));
     }
 
@@ -250,13 +186,13 @@ interface VPCPlanResult {
 }
 
 function planVPC(provider: string, cidr: string, region: string, zone_count: number, subnet_routes: SubnetRoutes): VPCPlanResult {
-    const zone_mask = Cidr.mask(cidr) + count2CidrMaskBits(zone_count);
+    const zone_mask = cidrMask(cidr) + count2CidrMaskBits(zone_count);
 
     const zones = [];
     const freeCidrs = [];
 
     let idx = 0;
-    for (const zone_cidr of Cidr.subnets(cidr, zone_mask)) {
+    for (const zone_cidr of cidrSubnets(cidr, zone_mask)) {
         if (idx >= zone_count) {
             freeCidrs.push(new FreeCidr(zone_cidr));
         } else {
@@ -341,12 +277,12 @@ interface ClusterPlanResult {
 function planCluster(provider: string, cidr: string, regions: RegionsConfig, subnet_routes: SubnetRoutes): ClusterPlanResult {
     const region_names = Object.keys(regions);
     const region_cnt = region_names.length;
-    const region_mask = Cidr.mask(cidr) + count2CidrMaskBits(region_cnt);
+    const region_mask = cidrMask(cidr) + count2CidrMaskBits(region_cnt);
     const vpcs = [];
     const freeCidrs = [];
 
     let idx = 0;
-    const region_cidrs = Cidr.subnets(cidr, region_mask);
+    const region_cidrs = cidrSubnets(cidr, region_mask);
     for (const region_cidr of region_cidrs) {
         if (idx >= region_cnt) {
             freeCidrs.push(new FreeCidr(region_cidr));
@@ -390,7 +326,7 @@ export class Cluster {
         this.subnet_routes = subnet_routes;
         this.provider = provider;
 
-        this.ip_count = Cidr.count(cidr);
+        this.ip_count = cidrCountIps(cidr);
         const re = planCluster(provider, cidr, regions, subnet_routes);
         this.vpcs = re.vpcs;
         this.freeCidrs = re.freeCidrs;
@@ -417,7 +353,7 @@ export function AssertValidRoute(
     //         L
     //      M     M
     //     S S   S S
-    const cidr_mask = Cidr.mask(cidr);
+    const cidr_mask = cidrMask(cidr);
     const avail_cidr_mask_bits = 32 - cidr_mask - count2CidrMaskBits(region_count) - count2CidrMaskBits(zone_count);
 
     if (avail_cidr_mask_bits <= 0) {
