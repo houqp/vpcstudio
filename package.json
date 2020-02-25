@@ -10,9 +10,7 @@
     "cytoscape": "^3.13.0",
     "cytoscape-no-overlap": "^1.0.1",
     "cytoscape-popper": "^1.0.6",
-    "file-loader": "^5.0.2",
-    "js-yaml": "^3.13.1",
-    "node-cidr": "^1.0.0"
+    "js-yaml": "^3.13.1"
   },
   "devDependencies": {
     "@types/ace": "0.0.42",
