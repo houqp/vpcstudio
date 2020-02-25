@@ -5,7 +5,6 @@
   "main": "main.js",
   "dependencies": {
     "ace-builds": "^1.4.8",
-    "build": "^0.1.4",
     "bulma": "^0.8.0",
     "cytoscape": "^3.13.0",
     "cytoscape-no-overlap": "^1.0.1",
