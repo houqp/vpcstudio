@@ -73,10 +73,17 @@ function loadConfig(cfgStr: string): Result<PlanConfig, string> {
     if (!cfg.subnet_routes) {
         return err("Missing subnet_routes key in config");
     }
-    for (const subnet_name in cfg.subnet_routes) {
-        if (!cfg.subnet_routes[subnet_name].size) {
-            // default to medium size if not specified
-            cfg.subnet_routes[subnet_name].size = "m";
+    const subnet_names = Object.keys(cfg.subnet_routes);
+    if (subnet_names.length === 1) {
+        // if there is only one route, enforce size to be m since other size
+        // doesn't make sense
+        cfg.subnet_routes[subnet_names[0]].size = "m";
+    } else {
+        for (const subnet_name of subnet_names) {
+            if (!cfg.subnet_routes[subnet_name].size) {
+                // default to medium size if not specified
+                cfg.subnet_routes[subnet_name].size = "m";
+            }
         }
     }
 
