@@ -35,7 +35,7 @@ function renderVPCSubnetRoutes(vpc: VPC): string {
     return parts.join("\n");
 }
 
-function renderVPCTemplate(vpc: VPC): string {
+export function renderVPCTemplate(vpc: VPC): string {
     const zones = [];
     for (const zone of vpc.zones) {
         zones.push(`"${zone.zone}"`);
@@ -43,30 +43,48 @@ function renderVPCTemplate(vpc: VPC): string {
 
     const public_subnets = [];
     const private_subnets = [];
+    const intra_subnets = [];
     for (const route_name of Object.keys(vpc.subnet_routes)) {
+        const local_var = `local.subnet_routes["${vpc.name}"]["${route_name}"]`;
         if (route_name === "public" || route_name.startsWith("public_")) {
-            public_subnets.push(`local.subnet_routes["${vpc.name}"]["${route_name}"]`);
+            public_subnets.push(local_var);
+        } else if (route_name === "intra" || route_name.startsWith("intra_")) {
+            intra_subnets.push(local_var);
         } else {
-            private_subnets.push(`local.subnet_routes["${vpc.name}"]["${route_name}"]`);
+            private_subnets.push(local_var);
         }
     }
 
-    return `
+    const parts = [`
 module "vpc-${vpc.name}" {
   source = "terraform-aws-modules/vpc/aws"
 
   name = "${vpc.name}"
   cidr = "${vpc.cidr}"
 
-  azs             = [${zones.join(", ")}]
-  private_subnets = concat(${private_subnets.join(", ")})
-  public_subnets  = concat(${public_subnets.join(", ")})
+  azs             = [${zones.join(", ")}]`,
+    ];
 
+    if (private_subnets.length > 0) {
+        parts.push(`  private_subnets = concat(${private_subnets.join(", ")})`);
+    }
+
+    if (public_subnets.length > 0) {
+        parts.push(`  public_subnets = concat(${public_subnets.join(", ")})`);
+    }
+
+    if (intra_subnets.length > 0) {
+        parts.push(`  intra_subnets = concat(${intra_subnets.join(", ")})`);
+    }
+
+    parts.push(`
   enable_nat_gateway = true
   enable_vpn_gateway = true
 
   tags = local.vpc_common_tags
-}`;
+}`);
+
+    return parts.join("\n");
 }
 
 function drawTerraform(cluster: Cluster): void {
