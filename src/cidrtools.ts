@@ -76,26 +76,38 @@ const cidrMaxIp = (cidr: string): string => {
 }
 
 export const rangeToCidrs = (min: number, max: number): string[] => {
-    // FIXME: make sure min <= max
+    if (min > max) {
+        console.error("got invalid range for cidr conversion", min, max);
+        return [];
+    }
+
     let mask = 0;
     let baseIp = min;
-    let ipCounts = max - min;
+    let ip_counts = max - min;
 
     const cidrs = [];
 
-    while (ipCounts > 0) {
+    while (ip_counts > 0) {
         let found_cidr = false;
         for (let i = 0; i <= 32; i++) {
             mask = 32 - i;
             const exp = 2 ** (32 - mask);
-            if (exp - 1 === ipCounts) {
+            if (exp - 1 === ip_counts) {
                 // found the perfect match
                 cidrs.push(`${posToIp(baseIp)}/${mask}`);
-                ipCounts = 0;
+                ip_counts = 0;
                 found_cidr = true;
                 break;
-            } else if (exp - 1 > ipCounts) {
-                // FIXME: finish this branch
+            } else if (exp - 1 > ip_counts) {
+                // can't find a perfect mask to match remaining range
+                // mask is a superset of remaining range
+                // mask+1 covers part of remianing range
+                // use mask+1 and recursively find a prefect match for what's left over
+                //
+                // mask      mask+1
+                //   |----------|-------|---|
+                //   baseIp       baseIp+ip_counts
+
                 mask += 1;
                 const sub_cidr = `${posToIp(baseIp)}/${mask}`;
                 cidrs.push(sub_cidr);
@@ -103,13 +115,13 @@ export const rangeToCidrs = (min: number, max: number): string[] => {
                 const sub_cidr_max = cidrToRange(sub_cidr)[1];
                 const new_min = sub_cidr_max + 1;
                 baseIp = new_min;
-                ipCounts = max - new_min;
+                ip_counts = max - new_min;
                 found_cidr = true;
                 break;
             }
         }
         if (!found_cidr) {
-            // FIXME: should not happen?
+            console.error("not able to find cidr range for range", min, max);
             break;
         }
     }
@@ -164,7 +176,7 @@ export class IpSet {
             }
         }
         if (from_cidr === null) {
-            // FIXME: return error
+            console.error("cidr to substract not within ipset", to_cidr, this.cidrs);
             return;
         }
 
@@ -184,13 +196,16 @@ export class IpSet {
             new_max = ymin-1;
         } else {
             // ycidr needs to be either a prefix or suffix of xcidr
-            // FIXME: this should never happen
+            console.error("no overlap between cidr ranges", xmin, xmax, ymin, ymax);
             return;
         }
 
         if (new_min > new_max) {
-            // FIXME: return 0 when new_min == new_max
-            // FIXME: this should never happen
+            // this should never happen
+            console.error("invalid range for remaining cidr", new_min, new_max);
+            return;
+        } else if (new_min == new_max) {
+            // from_cidr has been fully consumed
             return;
         }
 
