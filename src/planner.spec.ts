@@ -153,6 +153,46 @@ describe("Plan cluster", () => {
         expect(zone1.subnets[3].cidr).to.equal("10.0.14.0/23");
         expect(zone1.freeCidrs[0].cidr).to.equal("10.0.16.0/20");
     });
+
+    it("should cap VPC size to /16 for AWS provider", () => {
+        const c = new Cluster("aws", "10.0.0.0/8", {
+            "prod": {
+                region: "us-west-2",
+                zone_count: 3,
+            },
+            "stg": {
+                region: "us-west-2",
+                zone_count: 3,
+            },
+            "dev": {
+                region: "us-west-2",
+                zone_count: 3,
+            },
+        }, {
+            "public": { size: "l" },
+            "private": { size: "m" },
+            "a": { size: "s" },
+            "b": { size: "s" },
+        })
+
+        expect(c.ip_count).to.equal(16777216);
+        expect(c.vpcs.length).to.equal(3);
+        expect(c.freeCidrs.length).to.equal(253);
+
+        for (const vpc of c.vpcs) {
+            expect(vpc.ip_count).to.equal(65536);
+        }
+        const vpc1 = c.vpcs[0];
+        expect(vpc1.cidr).to.equal("10.0.0.0/16");
+        const zone1 = vpc1.zones[0];
+        expect(zone1.cidr).to.equal("10.0.0.0/18");
+        expect(zone1.subnets[0].name).to.equal("public");
+        expect(zone1.subnets[0].cidr).to.equal("10.0.0.0/20");
+        expect(zone1.subnets[1].cidr).to.equal("10.0.16.0/21");
+        expect(zone1.subnets[2].cidr).to.equal("10.0.24.0/22");
+        expect(zone1.subnets[3].cidr).to.equal("10.0.28.0/22");
+        expect(zone1.freeCidrs[0].cidr).to.equal("10.0.32.0/19");
+    });
 });
 
 

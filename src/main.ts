@@ -57,7 +57,7 @@ function loadConfig(cfgStr: string): Result<PlanConfig, string> {
                 break;
             }
             default: {
-                return err(`${cfg.provider} is not a supported provider type, please submit a pull request at: <a href="https://github.com/houqp/vpcstudio">https://github.com/houqp/vpcstudio</a>`);
+                return err(`${cfg.provider} is not a supported provider type, please submit a pull request to <a href="https://github.com/houqp/vpcstudio">https://github.com/houqp/vpcstudio</a>`);
             }
         }
     }

@@ -277,9 +277,14 @@ interface ClusterPlanResult {
 function planCluster(provider: string, cidr: string, regions: RegionsConfig, subnet_routes: SubnetRoutes): ClusterPlanResult {
     const region_names = Object.keys(regions);
     const region_cnt = region_names.length;
-    const region_mask = cidrMask(cidr) + count2CidrMaskBits(region_cnt);
     const vpcs = [];
     const freeCidrs = [];
+
+    let region_mask = cidrMask(cidr) + count2CidrMaskBits(region_cnt);
+    if (provider == "aws") {
+        // AWS enforces max VPC size of /16 (65536 IPs)
+        region_mask = Math.max(region_mask, 16);
+    }
 
     let idx = 0;
     const region_cidrs = cidrSubnets(cidr, region_mask);
