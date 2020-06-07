@@ -10,6 +10,7 @@ REPOSITORY=$GITHUB_REPOSITORY
 };
 
 make build
+cp -R ./assets/* ./dist
 
 echo "pushing to gh-pages branch"
 git prune
@@ -17,7 +18,7 @@ git branch -D gh-pages || true
 git checkout --orphan gh-pages
 git rm -rf .
 cp dist/* ./
-git add *.js *.css *.html
+git add *.js *.css *.html *.xml
 
 git config --local user.email "action@github.com"
 git config --local user.name "GitHub Action"
